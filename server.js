@@ -1,5 +1,7 @@
-var app = require('express').createServer(),
-    io = require('socket.io').listen(app),
+
+var app = require('express')();
+var http = require('http').Server(app);
+var io = require('socket.io')(http);
     logger = require('winston'),
     program = require('commander');
     
@@ -22,13 +24,13 @@ if(program.args.length==1) {
     logger.warn("Defaulting to localhost.");
 }
 
-var port = 8080;
+var port = 3000;
 if(program.port) {
     logger.info("Setting port to " + program.port);
     port = program.port;
 }
 
-app.listen(port);
+http.listen(port);
 
 if(program.disableheartbeats) {
     io.set("heartbeats", false)
@@ -40,9 +42,8 @@ io.set("log level", 0);
 //
 // LISTENERS
 //
-
-app.get('/', function (req, res) {
-  res.sendfile(__dirname + '/index.html');
+app.get('/', function(req, res){
+  res.sendfile('index.html');
 });
 
 
@@ -52,7 +53,7 @@ app.get('/', function (req, res) {
 var connectedUsersCount = 0;
 var messagesPerSecond = 0;
 
-io.sockets.on('connection', function(socket) {
+io.on('connection', function(socket) {
     connectedUsersCount++;
     
     socket.on('chat', function(data) {
